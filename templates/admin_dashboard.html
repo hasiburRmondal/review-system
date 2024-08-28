@@ -1,0 +1,107 @@
+{% extends "default_layout.html" %}
+
+{% block title %}
+All Users
+{% endblock %}
+
+{% block content %}
+<h1>All Users</h1>
+<hr>
+
+<!-- Search Form -->
+<form method="GET" action="{{ url_for('admin_dashboard') }}" class="d-flex mb-3">
+    <input class="form-control me-2" type="search" name="search" placeholder="Search" aria-label="Search" value="{{ search_query }}">
+    <button class="btn btn-outline-success" type="submit">Search</button>
+</form>
+
+<table class="table table-bordered border-primary my-3">
+    <thead class="table-dark">
+        <tr>
+            <th>No</th>
+            <th>Username</th>
+            <th>Company Name</th>
+            <th>Phone Number</th>
+            <th>Company Address</th>
+            <th>Activate/Deactivate</th>
+            <th>View Profile</th> <!-- New column for viewing profiles -->
+        </tr>
+    </thead>
+    <tbody>
+        {% for subscriber in subscribers %}
+        <tr>
+            <td>{{ loop.index + (pagination.page - 1) * pagination.per_page }}</td>
+            <td>{{ subscriber.username }}</td>
+            <td>{{ subscriber.meta.company_name }}</td>
+            <td>{{ subscriber.meta.phone_number }}</td>
+            <td>{{ subscriber.meta.company_address }}</td>
+            <td>
+                <!-- Form to toggle user active status -->
+                <form action="{{ url_for('admin_dashboard') }}" method="POST">
+                    <input type="hidden" name="user_id" value="{{ subscriber.id }}">
+                    <div class="dropdown">
+                        <button class="btn {{ 'btn-success' if subscriber.active else 'btn-danger' }} dropdown-toggle" type="button" id="statusDropdown{{ subscriber.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                            {{ 'Active' if subscriber.active else 'Inactive' }}
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="statusDropdown{{ subscriber.id }}">
+                            <li>
+                                <button class="dropdown-item" type="submit" name="toggle_status" value="activate">
+                                    Active
+                                </button>
+                            </li>
+                            <li>
+                                <button class="dropdown-item" type="submit" name="toggle_status" value="deactivate">
+                                    Inactive
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                </form>
+            </td>
+            <td>
+                <!-- Link to view the subscriber's profile -->
+                <a href="{{ url_for('view_subscriber_profile', user_id=subscriber.id) }}" class="btn btn-info text-white">View Profile</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% if pagination.pages > 1 %}
+<!-- Pagination controls -->
+<nav aria-label="Page navigation example">
+    <ul class="pagination justify-content-center">
+        {% if pagination.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('admin_dashboard', page=pagination.prev_num, search=search_query) }}">Previous</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">Previous</span>
+        </li>
+        {% endif %}
+
+        {% for page_num in pagination.iter_pages() %}
+        {% if page_num %}
+        <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+            <a class="page-link" href="{{ url_for('admin_dashboard', page=page_num, search=search_query) }}">{{ page_num }}</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">…</span>
+        </li>
+        {% endif %}
+        {% endfor %}
+
+        {% if pagination.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('admin_dashboard', page=pagination.next_num, search=search_query) }}">Next</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">Next</span>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

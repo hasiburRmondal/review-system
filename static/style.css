@@ -1,0 +1,9 @@
+.password-field {
+    position: relative;
+}
+.password-field input[type="password"] {
+    padding-right: 2.5rem;
+}
+.input-group-text {
+    cursor: pointer;
+}

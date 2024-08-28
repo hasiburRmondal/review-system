@@ -1,0 +1,20 @@
+{% extends "default_layout.html" %}
+
+{% block title %}
+Review Details
+{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Review Details</h1>
+<hr>
+
+<div class="card">
+    <div class="card-body">
+        <p class="card-text"><strong>Name:</strong> {{ review.name }}</p>
+        <p class="card-text"><strong>Email:</strong> {{ review.email }}</p>
+        <p class="card-text"><strong>Rating:</strong> {{ review.rating }}</p>
+        <p class="card-text"><strong>Comment:</strong> {{ review.comment }}</p>
+        <p class="card-text"><strong>Date Submitted:</strong> {{ review.date_submitted }}</p>
+    </div>
+</div>
+{% endblock %}

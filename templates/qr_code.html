@@ -1,0 +1,38 @@
+{% extends "default_layout.html" %}
+
+{% block title %}
+QR Code for Review
+{% endblock %}
+
+{% block content %}
+<div id="qr-card" class="card text-center mx-auto" style="max-width: 400px; margin-top: 20px;">
+    <div class="card-header">
+        <h1 class="card-title">{{ user.meta.company_name }}</h1>
+    </div>
+    <div class="card-body">
+        <p class="card-text">Scan This QR Code To Review Us.</p>
+        <img src="{{ qr_code_url }}" alt="QR Code" class="img-fluid rounded">
+        <p class="card-text mt-3">Thank you for your attention!</p>
+    </div>
+</div>
+
+<!-- Download Button -->
+<div class="text-center mt-3">
+    <button id="download-btn" class="btn btn-primary">Download QR Code</button>
+</div>
+
+<script>
+    document.getElementById('download-btn').addEventListener('click', function () {
+        const card = document.getElementById('qr-card');
+        html2canvas(card).then(function (canvas) {
+            const link = document.createElement('a');
+            link.download = 'qr_card.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+    });
+</script>
+
+<!-- Include html2canvas library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+{% endblock %}

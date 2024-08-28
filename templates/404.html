@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Not Found</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background: radial-gradient(circle, #001f3f, #003366, #004080, #00509e, #007bff);
+            color: #fff;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hero-section {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .error-page {
+            position: relative;
+            z-index: 1;
+        }
+
+        .error-page h1 {
+            font-size: 150px;
+            color: #dc3545;
+        }
+
+        .error-page p {
+            font-size: 18px;
+        }
+
+        .error-page a {
+            text-decoration: none;
+            color: #fff;
+            display: inline-block;
+            padding: 10px 30px;
+            background-color: #ff5722;
+            text-transform: uppercase;
+            font-weight: bold;
+            border-radius: 30px;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            margin-top: 15px;
+        }
+
+        .error-page a:hover {
+            background-color: #e64a19;
+            transform: scale(1.05);
+        }
+
+        /* Star shining animation */
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: shine 2s infinite ease-in-out;
+            z-index: 0;
+        }
+
+        @keyframes shine {
+            0%, 100% {
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .star:nth-child(2n) {
+            animation-delay: 1s;
+        }
+
+        /* Keyframes for content animations */
+        @keyframes fadeInDown {
+            0% {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="hero-section">
+        <div class="error-page">
+            <h1>404</h1>
+            <p>Sorry, the page you are looking for does not exist.</p>
+            <a href="{{ url_for('index') }}">Return to Home</a>
+        </div>
+        <!-- Star elements -->
+        <div class="star" style="top: 10%; left: 20%;"></div>
+        <div class="star" style="top: 30%; left: 50%;"></div>
+        <div class="star" style="top: 60%; left: 80%;"></div>
+        <div class="star" style="top: 80%; left: 30%;"></div>
+        <div class="star" style="top: 50%; left: 70%;"></div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,38 @@
+{% extends "default_layout.html" %}
+
+{% block title %}
+Home
+{% endblock %}
+
+{% block content %}
+<h1>Home</h1>
+<hr>
+    
+    <div class="row py-3">
+        <!-- Total Subscribers Card - Display only for Administrators -->
+        {% if user_role == 'administrator' %}
+        <div class="col-md-3">
+            <div class="card text-white bg-primary mb-3">
+                <a href="{{ url_for('admin_dashboard') }}" class="text-decoration-none">
+                    <div class="card-header text-white">Total Subscribers</div>
+                    <div class="card-body">
+                        <h5 class="card-title text-white">{{ total_users }}</h5>
+                    </div>
+                </a>
+            </div>
+        </div>
+        {% endif %}
+        <!-- Total Reviews Card -->
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3">
+                <a href="{{ url_for('dashboard') }}" class="text-decoration-none">
+                <div class="card-header text-white">Bad Reviews</div>
+                <div class="card-body">
+                    <h5 class="card-title text-white">{{ total_reviews }}</h5>
+                </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

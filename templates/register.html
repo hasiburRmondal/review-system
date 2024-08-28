@@ -1,0 +1,46 @@
+{% extends "default_layout.html" %}
+
+{% block title %}
+User Registration
+{% endblock %}
+
+{% block content %}
+<h1>Add User</h1>
+<hr>
+<form action="{{ url_for('register') }}" method="POST">
+    <div class="form-group">
+        <label for="username">Username:</label>
+        <input type="text" name="username" id="username" class="form-control" required>
+    </div>
+    <div class="form-group">
+        <label for="password">Password:</label>
+        <div class="input-group">
+            <input type="password" name="password" id="password" class="form-control" required>
+            <button type="button" class="btn btn-outline-secondary input-group-text" onclick="togglePassword('password', 'toggleIcon')" id="toggleIcon">
+                <i class="bi bi-eye"></i>
+            </button>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary my-3">Register</button>
+</form>
+
+{% endblock %}
+
+{% block css_js %}
+<script>
+    function togglePassword(fieldId, iconId) {
+        const passwordField = document.getElementById(fieldId);
+        const icon = document.getElementById(iconId).querySelector('i');
+        
+        if (passwordField.type === 'password') {
+            passwordField.type = 'text';
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
+        } else {
+            passwordField.type = 'password';
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
+        }
+    }
+</script>
+{% endblock %}
