@@ -143,8 +143,8 @@ def register():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('user_home'))
+    # if current_user.is_authenticated:
+    #     return redirect(url_for('user_home'))
     
     if request.method == 'POST':
         username = request.form['username']
@@ -432,6 +432,7 @@ def create_review(user_id):
         email = request.form['email']
         rating = request.form['rating']
         comment = request.form['comment']
+        
 
         # Check if a review with the same email already exists
         existing_review = Review.query.filter_by(email=email).first()
