@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, Response, send_file
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
@@ -23,6 +24,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize the database
 db = SQLAlchemy(app)
+
+migrate = Migrate(app, db)
 
 # Initialize LoginManager
 login_manager = LoginManager()
@@ -64,13 +67,15 @@ class User(db.Model):
 class UserMeta(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     company_name = db.Column(db.String(150))
+    email = db.Column(db.String(100), nullable=False)
     phone_number = db.Column(db.String(15))
     company_address = db.Column(db.String(250))
-    google_review_url = db.Column(db.Text)
+    google_review_url = db.Column(db.Text, nullable=False)
     user_id = db.Column(db.String(36), db.ForeignKey('user.id'), nullable=False)
 
-    def __init__(self, company_name, phone_number, company_address, user_id):
+    def __init__(self, company_name, email, phone_number, company_address, user_id):
         self.company_name = company_name
+        self.email = email
         self.phone_number = phone_number
         self.company_address = company_address
         self.user_id = user_id
@@ -85,9 +90,9 @@ class Review(db.Model):
     date_submitted = db.Column(db.DateTime, default=datetime.now)
     user_id = db.Column(db.String(36), db.ForeignKey('user.id'), nullable=False)
 
-# Create the database and tables
-with app.app_context():
-    db.create_all()
+# Create the database and tables - flask migrate is imported 
+# with app.app_context():
+#     db.create_all()
 
 # Define user loader for Flask-Login
 @login_manager.user_loader
@@ -293,6 +298,7 @@ def profile():
 
     if request.method == 'POST':
         company_name = request.form['company_name']
+        email = request.form['email']
         phone_number = request.form['phone_number']
         company_address = request.form['company_address']
         google_review_url = request.form['google_review_url']
@@ -300,10 +306,11 @@ def profile():
         # Ensure the UserMeta exists
         user_meta = current_user.meta
         if not user_meta:
-            user_meta = UserMeta(company_name='', phone_number='', company_address='', google_review_url='', user_id=current_user.id)
+            user_meta = UserMeta(company_name='', email='', phone_number='', company_address='', google_review_url='', user_id=current_user.id)
             db.session.add(user_meta)
 
         user_meta.company_name = company_name
+        user_meta.email = email
         user_meta.phone_number = phone_number
         user_meta.company_address = company_address
         user_meta.google_review_url = google_review_url
@@ -396,6 +403,7 @@ def update_subscriber_profile(user_id):
     # Update user meta information
     user_meta = user.meta
     user_meta.company_name = request.form['company_name']
+    user_meta.email = request.form['email']
     user_meta.phone_number = request.form['phone_number']
     user_meta.company_address = request.form['company_address']
     user_meta.google_review_url = request.form['google_review_url']

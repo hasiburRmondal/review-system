@@ -18,20 +18,24 @@ Profile
     </form>
   </div>
     <form action="{{ url_for('profile') }}" method="POST">
-        <div class="mb-3">
+        <div class="form-group">
             <label for="company_name" class="form-label">Company Name:</label>
             <input type="text" class="form-control" name="company_name" value="{{ user.meta.company_name }}"><br>
         </div>
-        <div class="mb-3">
+        <div class="form-group">
+            <label for="email" class="form-label">Email:</label>
+            <input type="email" class="form-control" name="email" value="{{ user.meta.email }}"><br>
+        </div>
+        <div class="form-group">
             <label for="phone_number" class="form-label">Phone Number:</label>
             <input type="number" class="form-control" name="phone_number" value="{{ user.meta.phone_number }}"><br>
         </div>
-        <div class="mb-3">
+        <div class="form-group">
             <label for="company_address" class="form-label">Company Address:</label>
             <input type="text" class="form-control" name="company_address" value="{{ user.meta.company_address }}"><br>
         </div>
 
-        <div class="mb-3">
+        <div class="form-group mb-3">
             <label for="google_review_url" class="form-label">Google Review URL:</label>
             <input type="url" id="google_review_url" class="form-control" name="google_review_url" value="{{ user.meta.google_review_url }}" required>
         </div>
