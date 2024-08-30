@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
+import re  # Import the regular expressions module
 from datetime import datetime
 import csv
 from uuid import uuid4
@@ -111,6 +112,12 @@ def admin_required(f):
             return redirect(url_for('user_home'))
         return f(*args, **kwargs)
     return decorated_function
+
+# Function to validate the email format
+def is_valid_email(email):
+    # Regular expression to validate email format
+    email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return re.match(email_regex, email)
 
 @app.route('/register', methods=['GET', 'POST'])
 @admin_required
@@ -432,7 +439,28 @@ def create_review(user_id):
         email = request.form['email']
         rating = request.form['rating']
         comment = request.form['comment']
+
+        # Validate the form inputs individually
+        if not name:
+            flash('Name is required.', 'danger')
+            return redirect(url_for('create_review', user_id=user_id))
         
+        if not email:
+            flash('Email is required.', 'danger')
+            return redirect(url_for('create_review', user_id=user_id))
+        
+        # Validate email format
+        if not is_valid_email(email):
+            flash('Invalid email format. Please provide a valid email address.', 'danger')
+            return redirect(url_for('create_review', user_id=user_id))
+        
+        if not rating:
+            flash('Rating is required.', 'danger')
+            return redirect(url_for('create_review', user_id=user_id))
+        
+        if not comment:
+            flash('Comment is required.', 'danger')
+            return redirect(url_for('create_review', user_id=user_id))    
 
         # Check if a review with the same email already exists
         existing_review = Review.query.filter_by(email=email).first()
