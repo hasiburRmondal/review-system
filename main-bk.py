@@ -21,7 +21,6 @@ app.config['SECRET_KEY'] = 'your_secret_key_here'  # Replace with a strong secre
 
 # Configure the SQLAlchemy part of the app
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/review_management'
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Welc0me$@localhost/review_management' 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize the database
@@ -69,18 +68,17 @@ class User(db.Model):
 class UserMeta(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     company_name = db.Column(db.String(150))
-    email = db.Column(db.String(255))
+    email = db.Column(db.String(100), nullable=False)
     phone_number = db.Column(db.String(15))
     company_address = db.Column(db.String(250))
-    google_review_url = db.Column(db.Text)
+    google_review_url = db.Column(db.Text, nullable=False)
     user_id = db.Column(db.String(36), db.ForeignKey('user.id'), nullable=False)
 
-    def __init__(self, company_name, email, phone_number, company_address, google_review_url, user_id):
+    def __init__(self, company_name, email, phone_number, company_address, user_id):
         self.company_name = company_name
         self.email = email
         self.phone_number = phone_number
         self.company_address = company_address
-        self.google_review_url = google_review_url  # Ensure this is included
         self.user_id = user_id
 
 # Review Model
@@ -141,7 +139,7 @@ def register():
         db.session.commit()
 
         # Create the UserMeta record for the user
-        user_meta = UserMeta(company_name='', email='', phone_number='', company_address='', google_review_url='', user_id=new_user.id)
+        user_meta = UserMeta(company_name='', email='', phone_number='', company_address='', user_id=new_user.id)
         db.session.add(user_meta)
         db.session.commit()
 
@@ -570,5 +568,4 @@ def page_not_found(e):
     return render_template('404.html'), 404
 
 if __name__ == '__main__':
-    # app.run(host='0.0.0.0', port=5000)
     app.run(debug=True)
