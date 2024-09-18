@@ -1,0 +1,168 @@
+{% extends "default_layout.html" %}
+
+{% block title %}
+New Customers
+{% endblock %}
+
+{% block content %}
+<h1>New Customers, Not Active</h1>
+<hr>
+
+
+<!-- Search Filter Form -->
+<form method="GET" action="{{ url_for('new_customers.new_customers') }}" class="mb-4">
+    <div class="row">
+        <div class="col-md-3">
+            <label for="search">Search:</label>
+            <input type="text" class="form-control" id="search" name="search_query" value="{{ search_query }}" placeholder="Search..." />
+        </div>
+        <div class="col-md-3">
+            <label for="from_date">From Date:</label>
+            <input type="date" id="from_date" name="from_date" class="form-control" value="{{ request.args.get('from_date') }}">
+        </div>
+        <div class="col-md-3">
+            <label for="to_date">To Date:</label>
+            <input type="date" id="to_date" name="to_date" class="form-control" value="{{ request.args.get('to_date') }}">
+        </div>
+        <div class="col-md-3">
+            <label for="customer_country">Customer Country:</label>
+            <select id="customer_country" name="customer_country" class="form-control">
+                <option value="">-- Select Country --</option>
+                {% for code, country in countries.items() %}
+                    <option value="{{ code }}" {% if customer_country == code %}selected{% endif %}> 
+                        {{ country }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+    </div>
+</form>
+
+<table class="table table-bordered border-primary my-3">
+    <thead class="table-dark">
+        <tr>
+            <th>No</th>
+            <th>Payment Details</th>
+            <th>Customer Name</th>
+            <th>Customer Phone</th>
+            <th>Customer Email</th>
+            <th>Customer Country</th>
+            <th>Business Name</th>
+            <th>Business Phone</th>
+            <th>Business Address</th>
+            <th>Business Email</th>
+            <th>Google Map URL</th>
+            <th>
+                <!-- Add Export CSV button -->
+                <a href="{{ url_for('new_customers.export_customers_csv') }}" class="btn btn-success mb-3">
+                    Export
+                </a>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        {% if order_list %}
+            {% for order in order_list %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>
+                    {% if not order.payment_details.payment_date_formatted == 'N/A' %}
+                    <p>{{ order.payment_details.payment_date_formatted }}</p>
+                    {% else %}
+                    <p>{{ order.date_created_formatted }}</p>
+                    {% endif %}
+                    <small>Order Id: {{ order.order_id }}</small>
+                </td>
+                <td>{{ order.custom_meta.billing_customer_name }}</td>
+                <td>{{ order.custom_meta.billing_customer_phone }}</td>
+                <td>{{ order.custom_meta.billing_customer_email }}</td>
+                <td>
+                    <img src="https://flagcdn.com/16x12/{{ order.custom_meta.billing_customer_country | lower }}.png" alt="{{ order.custom_meta.billing_customer_country }}">
+                    {{ order.custom_meta.billing_customer_country }}
+                </td>
+                <td>{{ order.custom_meta.billing_business_name or 'N/A' }}</td>
+                <td>{{ order.custom_meta.billing_business_phone or 'N/A' }}</td>
+                <td>{{ order.custom_meta.billing_business_address or 'N/A' }}</td>
+                <td>{{ order.custom_meta.billing_business_email or 'N/A' }}</td>
+                <td>
+                    {% if order.custom_meta.billing_google_map_url %}
+                        <a href="{{ order.custom_meta.billing_google_map_url }}" target="_blank"><i class="bi bi-geo-alt fs-4"></i>
+                        </a>
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </td>
+                <td>
+                    <!-- Create Account Button Form -->
+                    <form method="POST" action="{{ url_for('register') }}" style="display: inline;">
+                        <!-- Hidden inputs with order data -->
+                        <input type="hidden" name="form_type" value="create_new_customer_account">
+                        <input type="hidden" name="customer_name" value="{{ order.custom_meta.billing_customer_name }}">
+                        <input type="hidden" name="customer_phone" value="{{ order.custom_meta.billing_customer_phone }}">
+                        <input type="hidden" name="customer_email" value="{{ order.custom_meta.billing_customer_email }}">
+                        <input type="hidden" name="customer_country" value="{{ order.custom_meta.billing_customer_country }}">
+                        <input type="hidden" name="business_name" value="{{ order.custom_meta.billing_business_name or 'N/A' }}">
+                        <input type="hidden" name="business_phone" value="{{ order.custom_meta.billing_business_phone or 'N/A' }}">
+                        <input type="hidden" name="business_address" value="{{ order.custom_meta.billing_business_address or 'N/A' }}">
+                        <input type="hidden" name="business_email" value="{{ order.custom_meta.billing_business_email or 'N/A' }}">
+                        <input type="hidden" name="google_map_url" value="{{ order.custom_meta.billing_google_map_url or '' }}">
+                        <!-- Submit button -->
+                        <button type="submit" class="btn btn-primary mb-3">
+                            Create Account
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        {% else %}
+            <tr>
+                <td colspan="12" class="text-center">No Customers found for the selected criteria.</td>
+            </tr>
+        {% endif %}
+    </tbody>
+</table>
+
+<!-- Pagination controls -->
+{% if total_orders > per_page %}
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        <!-- Previous button -->
+        {% if current_page > 1 %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('new_customers.new_customers', page=current_page-1) }}" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link" aria-hidden="true">&laquo;</span>
+        </li>
+        {% endif %}
+
+        <!-- Page numbers -->
+        {% for page_num in range(1, total_pages + 1) %}
+        <li class="page-item {% if page_num == current_page %}active{% endif %}">
+            <a class="page-link" href="{{ url_for('new_customers.new_customers', page=page_num) }}">{{ page_num }}</a>
+        </li>
+        {% endfor %}
+
+        <!-- Next button -->
+        {% if current_page < total_pages %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('new_customers.new_customers', page=current_page+1) }}" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link" aria-hidden="true">&raquo;</span>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% endblock %}

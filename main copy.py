@@ -13,23 +13,13 @@ from sqlalchemy import extract
 from io import StringIO, BytesIO
 import qrcode
 import base64
-from urllib.parse import quote, unquote, quote_plus
-import requests
-from bs4 import BeautifulSoup
-from flask_mail import Mail, Message
-
-# Importing db from the models package
-from models import db
-from models.user import User
-from models.user import UserMeta
-from models.review import Review
+from urllib.parse import quote, unquote
 
 # Import the From external module
 from plot_routes import plot_blueprint
+from models.ticket import Ticket
 from routes.subscriber_compose import subscriber_bp
-from routes.subscriber_view import subscriber_view_bp 
 from routes.admin_view_tickets import admin_bp
-from routes.new_customers import new_customers_bp
 
 app = Flask(__name__)
 
@@ -41,21 +31,10 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/review_
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:Welc0me$@localhost/review_management' 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-
-# Flask-Mail configuration
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'  # Replace with your mail server
-app.config['MAIL_PORT'] = 587  # Use 465 for SSL
-app.config['MAIL_USERNAME'] = 'tedev.official@gmail.com'
-app.config['MAIL_PASSWORD'] = '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'
-app.config['MAIL_USE_TLS'] = True  # Set to False if not using TLS
-app.config['MAIL_USE_SSL'] = False  # Set to True if using SSL
-
-mail = Mail(app)
+# Initialize the database
+db = SQLAlchemy(app)
 
 migrate = Migrate(app, db)
-
-# Initialize Extensions
-db.init_app(app)  # Initialize db with the app
 
 # Initialize LoginManager
 login_manager = LoginManager()
@@ -65,9 +44,79 @@ login_manager.login_view = 'login'
 # Register the blueprint
 app.register_blueprint(plot_blueprint)
 app.register_blueprint(subscriber_bp)
-app.register_blueprint(subscriber_view_bp)
 app.register_blueprint(admin_bp)
-app.register_blueprint(new_customers_bp)
+
+# User Model
+class User(db.Model):
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid4()))
+    username = db.Column(db.String(100), nullable=False, unique=True)
+    password = db.Column(db.String(255), nullable=False)
+    role = db.Column(db.String(20), nullable=False, default='subscriber')
+    active = db.Column(db.Boolean, default=True)
+    registered_date = db.Column(db.DateTime, default=datetime.now)
+    reviews = db.relationship('Review', backref='user', lazy=True)
+    meta = db.relationship("UserMeta", backref="user", uselist=False)
+
+    def set_password(self, password):
+        self.password = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password, password)
+
+    def get_id(self):
+        return self.id
+
+    @property
+    def is_active(self):
+        return self.active
+
+    @property
+    def is_authenticated(self):
+        return True
+
+    @property
+    def is_anonymous(self):
+        return False
+
+# User Meta Model
+class UserMeta(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    company_name = db.Column(db.String(150))
+    email = db.Column(db.String(255))
+    phone_number = db.Column(db.String(15))
+    company_address = db.Column(db.String(250))
+    google_review_url = db.Column(db.Text)
+    user_id = db.Column(db.String(36), db.ForeignKey('user.id'), nullable=False)
+
+    # New fields
+    customer_name = db.Column(db.String(150))
+    customer_phone_number = db.Column(db.String(15))
+    customer_email = db.Column(db.String(255))
+    customer_country = db.Column(db.String(100))
+
+    def __init__(self, company_name, email, phone_number, company_address, google_review_url, user_id,
+                 customer_name=None, customer_phone_number=None, customer_email=None, customer_country=None):
+        self.company_name = company_name
+        self.email = email
+        self.phone_number = phone_number
+        self.company_address = company_address
+        self.google_review_url = google_review_url
+        self.user_id = user_id
+        self.customer_name = customer_name
+        self.customer_phone_number = customer_phone_number
+        self.customer_email = customer_email
+        self.customer_country = customer_country
+
+
+# Review Model
+class Review(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(100), nullable=False, unique=True)  # Add unique=True here
+    rating = db.Column(db.Integer, nullable=False)
+    comment = db.Column(db.Text, nullable=False)
+    date_submitted = db.Column(db.DateTime, default=datetime.now)
+    user_id = db.Column(db.String(36), db.ForeignKey('user.id'), nullable=False)
 
 # Create the database and tables - flask migrate is imported 
 # with app.app_context():
@@ -101,129 +150,55 @@ def is_valid_email(email):
 @admin_required
 def register():
     if request.method == 'POST':
-        form_type = request.form.get('form_type')
 
-        if form_type == 'register_customer_account':
-            #Customer Profile
-            customer_name = request.form['customer_name']
-            customer_phone_number = request.form['customer_phone_number']
-            customer_email = request.form['customer_email']
-            customer_country = request.form['customer_country']
+        #Customer Profile
+        customer_name = request.form['customer_name']
+        customer_phone_number = request.form['customer_phone_number']
+        customer_email = request.form['customer_email']
+        customer_country = request.form['customer_country']
 
-            # Business Profile
-            company_name = request.form['company_name']
-            email = request.form['email']
-            phone_number = request.form['phone_number']
-            company_address = request.form['company_address']
-            google_review_url = request.form['google_review_url']
+        # Business Profile
+        company_name = request.form['company_name']
+        email = request.form['email']
+        phone_number = request.form['phone_number']
+        company_address = request.form['company_address']
+        google_review_url = request.form['google_review_url']
 
-            # username/password
-            username = request.form['username']
-            password = request.form['password']
+        # username/password
+        username = request.form['username']
+        password = request.form['password']
 
-            # Check if the username already exists
-            existing_user = User.query.filter_by(username=username).first()
-            if existing_user:
-                flash('Username already exists.', 'danger')
-                return redirect(url_for('register'))
+        # Check if the username already exists
+        existing_user = User.query.filter_by(username=username).first()
+        if existing_user:
+            flash('Username already exists.', 'danger')
+            return redirect(url_for('register'))
 
-            # Create a new user with hashed password
-            new_user = User(username=username)
-            new_user.set_password(password)
-            db.session.add(new_user)
-            db.session.commit()
+        # Create a new user with hashed password
+        new_user = User(username=username)
+        new_user.set_password(password)
+        db.session.add(new_user)
+        db.session.commit()
 
-            # Create the UserMeta record for the user
-            user_meta = UserMeta(
-                company_name=company_name, 
-                email=email, 
-                phone_number=phone_number, 
-                company_address=company_address, 
-                google_review_url=google_review_url,
-                customer_name=customer_name,
-                customer_phone_number=customer_phone_number,
-                customer_email=customer_email,
-                customer_country=customer_country,
-                user_id=new_user.id
-                )
-            
-            db.session.add(user_meta)
-            db.session.commit()
-
-            # Send a registration confirmation email
-            msg = Message('Registration Successful',
-                          sender='tedev.official@gmail.com',
-                          recipients=[customer_email])
-            msg.body = f"""
-            Hello {customer_name},
-
-            Your registration was successful!
-
-            Username: {username}
-            Password: {password}
-            
-
-            Thank you for registering with us.
-
-            Best regards,
-            Your Company Name
-            """
-            mail.send(msg)
-
-            flash('Registration successful. Please log in.', 'success')
-            return redirect(url_for('user_home'))
+        # Create the UserMeta record for the user
+        user_meta = UserMeta(
+            company_name=company_name, 
+            email=email, 
+            phone_number=phone_number, 
+            company_address=company_address, 
+            google_review_url=google_review_url,
+            customer_name=customer_name,
+            customer_phone_number=customer_phone_number,
+            customer_email=customer_email,
+            customer_country=customer_country,
+            user_id=new_user.id
+            )
         
-        elif form_type == 'create_new_customer_account':
-            # Handle "create_new_customer_account" form submission (if applicable)
-            # Handle "Create Account" form submission
-            customer_name = request.form.get('customer_name')
-            customer_phone = request.form.get('customer_phone')
-            customer_email = request.form.get('customer_email')
-            customer_country = request.form.get('customer_country')
-            business_name = request.form.get('business_name')
-            business_phone = request.form.get('business_phone')
-            business_address = request.form.get('business_address')
-            business_email = request.form.get('business_email')
-            google_map_url = request.form.get('google_map_url')
+        db.session.add(user_meta)
+        db.session.commit()
 
-            # Construct the Google search URL
-            google_search_query = f"{business_name} {business_address}"
-            
-            # google_search_query = "TechiEvolve, 14th Floor, & GP, SRIJAN CORPORATE PARK, Plot No. –G2, PS, EP Block, Sector V, Bidhannagar, Kolkata, West Bengal 700091"
-            google_search_url = f"https://www.google.com/search?q={quote_plus(google_search_query)}"
-            
-            # Send a request to Google Search
-            headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
-            response_pid = requests.get(google_search_url, headers=headers)
-
-            # Check if the request was successful
-            if response_pid.status_code == 200:
-                soup = BeautifulSoup(response_pid.text, 'html.parser')
-
-                # Find the 'data-pid' attribute (you may need to inspect the search result page to get the correct selector)
-                data_pid = None
-                for item in soup.find_all(attrs={'data-pid': True}):
-                    data_pid = item.get('data-pid')
-                    google_map_url=f"https://search.google.com/local/writereview?placeid={data_pid}"
-                    break  # Break after finding the first occurrence
-
-                # If 'data-pid' is blank, return the search URL
-                if not data_pid:
-                     google_map_url = google_search_url
-
-            return render_template('register.html',
-                                   user=current_user, 
-                                   user_role=current_user.role,
-                                   customer_name=customer_name,
-                                   customer_phone=customer_phone,
-                                   customer_email=customer_email,
-                                   customer_country=customer_country,
-                                   business_name=business_name,
-                                   business_phone=business_phone,
-                                   business_address=business_address,
-                                   business_email=business_email,
-                                   google_map_url= google_map_url
-                                   )
+        flash('Registration successful. Please log in.', 'success')
+        return redirect(url_for('user_home'))
 
     return render_template('register.html',user=current_user, user_role=current_user.role)
 
@@ -290,23 +265,13 @@ def user_home():
     all_reviews_data = Review.query.count()
 
     # Calculate last week's start and end dates
-    today = datetime.now().date()  # Get only the date part
-    last_week_start = today - timedelta(days=7)
+    today = datetime.now()
+    last_week_start = today - timedelta(days=6)
     last_week_end = today
 
-    # Format last_week_end to the end of the day
-    last_week_end = datetime.combine(today, datetime.max.time())
-
-    # Format dates as strings
-    last_week_start_str = last_week_start.strftime('%Y-%m-%d')
-    last_week_end_str = last_week_end.strftime('%Y-%m-%d')
-
     # Query to count users registered in the last 7 days
-    total_users_last_week = User.query.filter(
-        User.role == 'subscriber',
-        User.registered_date >= last_week_start,
-        User.registered_date <= last_week_end
-    ).count()
+    last_week = datetime.now() - timedelta(days=7)
+    total_users_last_week = User.query.filter(User.role == 'subscriber', User.registered_date >= last_week).count()
 
     # Query to count reviews submitted by the current user in the last 7 days
     total_reviews_last_week = Review.query.filter(
@@ -347,8 +312,8 @@ def user_home():
         total_users=total_users,
         total_users_last_week=total_users_last_week,
         total_inactive_users=total_inactive_users,
-        last_week_start=last_week_start_str,
-        last_week_end=last_week_end_str,
+        last_week_start=last_week_start.strftime('%Y-%m-%d'),
+        last_week_end=last_week_end.strftime('%Y-%m-%d'),
         user=current_user,
         total_reviews=total_reviews,
         total_reviews_last_week=total_reviews_last_week,

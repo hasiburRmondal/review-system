@@ -7,31 +7,111 @@ Settings
 {% block content %}
 <h1>Settings</h1>
 <hr>
-<form method="post">
-    <div class="mb-3">
-        <label for="username" class="form-label">Username</label>
-        <input type="text" id="username" class="form-control" value="{{ user.username }}" readonly>
-    </div>
-    <div class="mb-3 password-field">
-        <label for="new_password" class="form-label">New Password</label>
-        <div class="input-group">
-        <input type="password" id="new_password" name="new_password" class="form-control" required>
-        <span class="show-password input-group-text" onclick="togglePassword('new_password')">
-            <i id="new_password_icon" class="bi bi-eye"></i>
-        </span>
+<div class="row">
+    <!-- New Customer fields -->
+    <div class="col-md-6">
+        <!-- Details Card -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h6>Details</h6>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    <input type="hidden" name="form_type" value="update_customer_profile">
+                    <div class="form-group">
+                        <label for="customer_name" class="form-label">Customer Name:</label>
+                        <input type="text" class="form-control" name="customer_name" value="{{ user.meta.customer_name }}"><br>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="customer_phone_number" class="form-label">Customer Phone Number:</label>
+                        <input type="text" class="form-control" name="customer_phone_number" value="{{ user.meta.customer_phone_number }}"><br>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="customer_email" class="form-label">Customer Email:</label>
+                        <input type="email" class="form-control" name="customer_email" value="{{ user.meta.customer_email }}"><br>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="customer_country" class="form-label">Customer Country:</label>
+                        <select class="form-control" name="customer_country" id="customer_country">
+                            <option value="">Select Country</option>
+                            {% set countries = [
+                                "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", 
+                                "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", 
+                                "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", 
+                                "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic", 
+                                "Chad", "Chile", "China", "Colombia", "Comoros", "Congo, Democratic Republic of the", "Congo, Republic of the", 
+                                "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic", 
+                                "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", 
+                                "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", 
+                                "Guinea-Bissau", "Guyana", "Haiti", "Honduras", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", 
+                                "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Korea, North", "Korea, South", 
+                                "Kosovo", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", 
+                                "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", 
+                                "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", 
+                                "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", 
+                                "North Macedonia", "Norway", "Oman", "Pakistan", "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay", 
+                                "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", 
+                                "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", 
+                                "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", 
+                                "Somalia", "South Africa", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", 
+                                "Syria", "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", 
+                                "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", 
+                                "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City", "Venezuela", "Vietnam", "Yemen", "Zambia", 
+                                "Zimbabwe"
+                            ] %}
+                            
+                            {% for country in countries %}
+                                <option value="{{ country }}" {% if user.meta.customer_country == country %}selected{% endif %}>{{ country }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Update Profile</button>
+                </form>
+            </div>
         </div>
     </div>
-    <div class="mb-3 password-field">
-        <label for="confirm_password" class="form-label">Confirm Password</label>
-        <div class="input-group">
-        <input type="password" id="confirm_password" name="confirm_password" class="form-control" required>
-        <span class="show-password input-group-text" onclick="togglePassword('confirm_password')">
-            <i id="confirm_password_icon" class="bi bi-eye"></i>
-        </span>
+
+
+    <div class="col-md-6">
+        <!-- Company Information Card -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h6>Change Password</h6>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    <input type="hidden" name="form_type" value="change_customer_password">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" id="username" class="form-control" value="{{ user.username }}" readonly>
+                    </div>
+                    <div class="mb-3 password-field">
+                        <label for="new_password" class="form-label">New Password</label>
+                        <div class="input-group">
+                        <input type="password" id="new_password" name="new_password" class="form-control" required>
+                        <span class="show-password input-group-text" onclick="togglePassword('new_password')">
+                            <i id="new_password_icon" class="bi bi-eye"></i>
+                        </span>
+                        </div>
+                    </div>
+                    <div class="mb-3 password-field">
+                        <label for="confirm_password" class="form-label">Confirm Password</label>
+                        <div class="input-group">
+                        <input type="password" id="confirm_password" name="confirm_password" class="form-control" required>
+                        <span class="show-password input-group-text" onclick="togglePassword('confirm_password')">
+                            <i id="confirm_password_icon" class="bi bi-eye"></i>
+                        </span>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-warning">Update Password</button>
+                </form>
+            </div>
         </div>
     </div>
-    <button type="submit" class="btn btn-primary">Update Password</button>
-</form>
+</div>   
 {% endblock %}
 
 {% block css_js %}

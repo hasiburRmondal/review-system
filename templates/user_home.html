@@ -7,32 +7,114 @@ Home
 {% block content %}
 <h1>Home</h1>
 <hr>
+<!-- Section Main - div -->
+<div class="row py-3">
     
-    <div class="row py-3">
-        <!-- Total Subscribers Card - Display only for Administrators -->
-        {% if user_role == 'administrator' %}
-        <div class="col-md-3">
-            <div class="card text-white bg-primary mb-3">
-                <a href="{{ url_for('admin_dashboard') }}" class="text-decoration-none">
-                    <div class="card-header text-white">Total Subscribers</div>
-                    <div class="card-body">
-                        <h5 class="card-title text-white">{{ total_users }}</h5>
-                    </div>
-                </a>
-            </div>
-        </div>
-        {% endif %}
-        <!-- Total Reviews Card -->
-        <div class="col-md-3">
-            <div class="card text-white bg-success mb-3">
-                <a href="{{ url_for('dashboard') }}" class="text-decoration-none">
-                <div class="card-header text-white">Bad Reviews</div>
+    <!-- Total Customers Card - Display only for Administrators -->
+    {% if user_role == 'administrator' %}
+    <!-- Total Customers Registered Count-->
+    <div class="col-md-3">
+        <div class="card text-white bg-primary mb-3">
+            <a href="{{ url_for('admin_dashboard') }}" class="text-decoration-none">
+                <div class="card-header text-white">Total Customers</div>
                 <div class="card-body">
-                    <h5 class="card-title text-white">{{ total_reviews }}</h5>
+                    <h5 class="card-title text-white">{{ total_users }}</h5>
                 </div>
-                </a>
+            </a>
+        </div>
+    </div>
+
+     <!-- Customers Need Activation Card -->
+     <div class="col-md-3">
+        <div class="card text-white bg-secondary mb-3">
+            <a href="{{ url_for('admin_dashboard')}}?active_status=inactive" class="text-decoration-none">
+                <div class="card-header text-white">Customers Need Activation</div>
+                <div class="card-body">
+                    <h5 class="card-title text-white">{{ total_inactive_users }}</h5>
+                </div>
+            </a>
+        </div>
+    </div>   
+
+    <!-- Total Customers Registered in Last Week - Display only for Administrators -->
+    <div class="col-md-3">
+        <div class="card text-white bg-warning mb-3">
+            <a href="{{ url_for('admin_dashboard') }}?from_date={{ last_week_start }}&to_date={{ last_week_end }}" class="text-decoration-none">
+                <div class="card-header text-white">New Customers This Week</div>
+                <div class="card-body">
+                    <h5 class="card-title text-white">{{ total_users_last_week }}</h5>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Open Support Queries - Display only for Administrators -->
+    <div class="col-md-3">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-header text-white">Open Support Queries</div>
+            <div class="card-body">
+                <h5 class="card-title text-white">5</h5>
             </div>
         </div>
     </div>
+    <!-- All Review Data - Display only for Administrators -->
+    <div class="col-md-3">
+        <div class="card text-white bg-dark mb-3">
+            <div class="card-header text-white">Total Review Submitted</div>
+            <div class="card-body">
+                <h5 class="card-title text-white">{{all_reviews_data}}</h5>
+            </div>
+        </div>
+    </div>
+
+    {% endif %}
+    <!-- Total Negative Reviews  -->
+    <div class="col-md-3">
+        <div class="card text-white bg-danger mb-3">
+            <a href="{{ url_for('dashboard') }}" class="text-decoration-none">
+            <div class="card-header text-white">Total Negative Reviews</div>
+            <div class="card-body">
+                <h5 class="card-title text-white">{{ total_reviews }}</h5>
+            </div>
+            </a>
+        </div>
+    </div>
+    <!-- Total Negative Reviews - Weekly -->
+    <div class="col-md-3">
+        <div class="card text-white bg-info mb-3">
+            <a href="{{ url_for('dashboard', from_date=last_week_start, to_date=last_week_end) }}" class="text-decoration-none">
+            <div class="card-header text-white">Negative Reviews This Week</div>
+            <div class="card-body">
+                <h5 class="card-title text-white">{{ total_reviews_last_week }}</h5>
+            </div>
+            </a>
+        </div>
+    </div>
+    
+</div>
+
+<div class="row py-3">
+    <!-- Plot -->
+    {% if months and counts %}
+    
+    <!-- Year Selection Form -->
+    <form id="yearForm" method="post" action="{{ url_for('user_home') }}">
+        <label for="year">Select Year:</label>
+        <select name="year" id="year" class="form-control mb-3" onchange="document.getElementById('yearForm').submit();">
+            {% for year in years %}
+            <option value="{{ year }}" {% if year == selected_year|int %}selected{% endif %}>{{ year }}</option>
+            {% endfor %}
+        </select>
+    </form>
+
+    <div id="plot-container">
+        <img src="{{ url_for('plot_routes.plot_reviews', months=months, counts=counts) }}" alt="Review Plot">
+    </div>
+    {% endif %}
+</div>
+
+<!--  -->
+
+<!--  -->
 
 {% endblock %}

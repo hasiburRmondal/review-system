@@ -11,7 +11,18 @@ All Users
 <!-- Search Form -->
 <form method="GET" action="{{ url_for('admin_dashboard') }}" class="d-flex mb-3">
     <input class="form-control me-2" type="search" name="search" placeholder="Search" aria-label="Search" value="{{ search_query }}">
+    <input class="form-control me-2" type="date" name="from_date" placeholder="From Date" value="{{ from_date }}">
+    <input class="form-control me-2" type="date" name="to_date" placeholder="To Date" value="{{ to_date }}">
+    <select class="form-select me-2" name="active_status">
+        <option value="">All Statuses</option>
+        <option value="active" {% if active_status == 'active' %}selected{% endif %}>Active</option>
+        <option value="inactive" {% if active_status == 'inactive' %}selected{% endif %}>Inactive</option>
+    </select>
     <button class="btn btn-outline-success" type="submit">Search</button>
+
+    <!-- Download CSV button -->
+    <a href="{{ url_for('download_csv', search=search_query, from_date=from_date, to_date=to_date, active_status=active_status) }}" class="btn btn-primary ms-2">Export</a>
+
 </form>
 
 <table class="table table-bordered border-primary my-3">
@@ -20,8 +31,9 @@ All Users
             <th>No</th>
             <th>Username</th>
             <th>Company Name</th>
-            <th>Phone Number</th>
+            <th>Email</th>
             <th>Company Address</th>
+            <th>Registered On</th>
             <th>Activate/Deactivate</th>
             <th>View Profile</th> <!-- New column for viewing profiles -->
         </tr>
@@ -29,11 +41,12 @@ All Users
     <tbody>
         {% for subscriber in subscribers %}
         <tr>
-            <td>{{ loop.index + (pagination.page - 1) * pagination.per_page }}</td>
+            <td>{{ (pagination.total - ((pagination.page - 1) * pagination.per_page)) - loop.index0 }}</td>
             <td>{{ subscriber.username }}</td>
             <td>{{ subscriber.meta.company_name }}</td>
-            <td>{{ subscriber.meta.phone_number }}</td>
+            <td>{{ subscriber.meta.email }}</td>
             <td>{{ subscriber.meta.company_address }}</td>
+            <td>{{ subscriber.registered_date }}</td> <!-- Format date -->
             <td>
                 <!-- Form to toggle user active status -->
                 <form action="{{ url_for('admin_dashboard') }}" method="POST">
@@ -45,12 +58,12 @@ All Users
                         <ul class="dropdown-menu" aria-labelledby="statusDropdown{{ subscriber.id }}">
                             <li>
                                 <button class="dropdown-item" type="submit" name="toggle_status" value="activate">
-                                    Active
+                                    Activate
                                 </button>
                             </li>
                             <li>
                                 <button class="dropdown-item" type="submit" name="toggle_status" value="deactivate">
-                                    Inactive
+                                    Deactivate
                                 </button>
                             </li>
                         </ul>
@@ -59,12 +72,20 @@ All Users
             </td>
             <td>
                 <!-- Link to view the subscriber's profile -->
-                <a href="{{ url_for('view_subscriber_profile', user_id=subscriber.id) }}" class="btn btn-info text-white">View Profile</a>
+                <a href="{{ url_for('view_subscriber_profile', user_id=subscriber.id) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
+                
+                <!-- Envelope Icon to mailto the user -->
+                <a href="mailto:{{ subscriber.meta.customer_email }}" class="btn btn-sm btn-outline-secondary" title="Send Email">
+                    <i class="bi bi-envelope"></i>
+                </a>
             </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
+{% if no_results %}
+<p>No results found.</p>
+{% endif %}
 
 {% if pagination.pages > 1 %}
 <!-- Pagination controls -->
@@ -72,7 +93,7 @@ All Users
     <ul class="pagination justify-content-center">
         {% if pagination.has_prev %}
         <li class="page-item">
-            <a class="page-link" href="{{ url_for('admin_dashboard', page=pagination.prev_num, search=search_query) }}">Previous</a>
+            <a class="page-link" href="{{ url_for('admin_dashboard', page=pagination.prev_num, search=search_query, from_date=from_date, to_date=to_date, active_status=active_status) }}">Previous</a>
         </li>
         {% else %}
         <li class="page-item disabled">
@@ -83,7 +104,7 @@ All Users
         {% for page_num in pagination.iter_pages() %}
         {% if page_num %}
         <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
-            <a class="page-link" href="{{ url_for('admin_dashboard', page=page_num, search=search_query) }}">{{ page_num }}</a>
+            <a class="page-link" href="{{ url_for('admin_dashboard', page=page_num, search=search_query, from_date=from_date, to_date=to_date, active_status=active_status) }}">{{ page_num }}</a>
         </li>
         {% else %}
         <li class="page-item disabled">
@@ -94,7 +115,7 @@ All Users
 
         {% if pagination.has_next %}
         <li class="page-item">
-            <a class="page-link" href="{{ url_for('admin_dashboard', page=pagination.next_num, search=search_query) }}">Next</a>
+            <a class="page-link" href="{{ url_for('admin_dashboard', page=pagination.next_num, search=search_query, from_date=from_date, to_date=to_date, active_status=active_status) }}">Next</a>
         </li>
         {% else %}
         <li class="page-item disabled">

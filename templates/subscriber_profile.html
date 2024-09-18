@@ -26,31 +26,31 @@ Subscriber Profile
             <!-- Company Information Card -->
             <div class="card mb-3">
                 <div class="card-header">
-                    <h6>Company Information</h6>
+                    <h6>Business Profile</h6>
                 </div>
                 <div class="card-body">
                     <form method="POST" action="{{ url_for('update_subscriber_profile', user_id=user.id) }}">
                         <div class="form-group mb-3">
-                            <label for="company_name">Company Name:</label>
+                            <label for="company_name">Business Name:</label>
                             <input type="text" id="company_name" name="company_name" class="form-control" value="{{ user.meta.company_name }}">
                         </div>
                         <div class="form-group mb-3">
-                            <label for="email">Email:</label>
+                            <label for="email">Business Email:</label>
                             <input type="email" id="email" name="email" class="form-control" value="{{ user.meta.email }}">
                         </div>
                         <div class="form-group mb-3">
-                            <label for="phone_number">Phone Number:</label>
+                            <label for="phone_number">Business Phone Number:</label>
                             <input type="text" id="phone_number" name="phone_number" class="form-control" value="{{ user.meta.phone_number }}">
                         </div>
                         <div class="form-group mb-3">
-                            <label for="company_address">Company Address:</label>
+                            <label for="company_address">Business Address:</label>
                             <input type="text" id="company_address" name="company_address" class="form-control" value="{{ user.meta.company_address }}">
                         </div>
                         <div class="form-group mb-3">
                             <label for="google_review_url">Google Review URL:</label>
                             <input type="text" id="google_review_url" name="google_review_url" class="form-control" value="{{ user.meta.google_review_url }}">
                         </div>
-                        <button type="submit" class="btn btn-primary">Update Profile</button>
+                        <button type="submit" class="btn btn-primary">Update Business Profile</button>
                     </form>
                 </div>
             </div>
@@ -58,6 +58,18 @@ Subscriber Profile
 
         {% if user_role == 'administrator' %}
         <div class="col-md-6">
+            <!-- Customer Profile -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6>Customer Profile</h6>
+                </div>
+                <div class="card-body">
+                    <p>Customer Name: <strong>{{ user.meta.customer_name }}</strong></p>
+                    <p>Customer Phone Number: <strong>{{ user.meta.customer_phone_number }}</strong></p>
+                    <p>Customer Email: <strong>{{ user.meta.customer_email }}</strong></p>
+                    <p>Customer Country: <strong>{{ user.meta.customer_country }}</strong></p>
+                </div>
+            </div>
             <!-- Change Password Card -->
             <div class="card mb-3">
                 <div class="card-header">
